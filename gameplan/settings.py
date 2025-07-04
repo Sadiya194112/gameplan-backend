@@ -59,6 +59,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'gameplan.wsgi.application'
+AUTH_USER_MODEL = 'core.User'
 
 
 # Database
@@ -66,8 +67,12 @@ WSGI_APPLICATION = 'gameplan.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'gameplan_db',
+        'USER': 'sadiya',
+        'PASSWORD': 'sadiya',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
