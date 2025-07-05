@@ -11,3 +11,4 @@ urlpatterns = [
     path('plan/', views.plan_list_create, name='plan-list-create'),
     path('chat/', views.chat_list_create, name='chat-list-create'),
 ]
+
