@@ -4,14 +4,16 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    username = None
     email = models.EmailField(unique=True)
     bio = models.TextField(blank=True)
 
     USERNAME_FIELD = 'email'    # Required for log in
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['username'] # Required for creating a user
 
     objects = CustomUserManager()
+    
+    def __str__(self):
+        return self.email
 
 
 class Class(models.Model):

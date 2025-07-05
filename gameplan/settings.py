@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-sfu#8xfz0c-32s^qbeuh91_1-l(#kp&0$5f(46v9_k@j@hc(vb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', '49ae-115-127-156-9.ngrok-free.app']
 
 
 # Application definition
@@ -28,7 +28,8 @@ INSTALLED_APPS = [
     
     'core',
     'rest_framework',
-    'rest_framework_simplejwt'
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist'
 ]
 
 MIDDLEWARE = [
@@ -61,6 +62,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'gameplan.wsgi.application'
 AUTH_USER_MODEL = 'core.User'
 
+AUTHENTICATION_BACKENDS = [
+    'core.backends.EmailBackend',
+]
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -69,8 +73,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'gameplan_db',
-        'USER': 'sadiya',
-        'PASSWORD': 'sadiya',
+        'USER': 'postgres',
+        'PASSWORD': '280695',
         'HOST': 'localhost',
         'PORT': '5432',
     }
