@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-sfu#8xfz0c-32s^qbeuh91_1-l(#kp&0$5f(46v9_k@j@hc(vb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', '49ae-115-127-156-9.ngrok-free.app']
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', '49ae-115-127-156-9.ngrok-free.app', 'localhost']
 
 
 # Application definition
@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    'corsheaders',
     'core',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -35,11 +36,16 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
 ]
 
 ROOT_URLCONF = 'gameplan.urls'
@@ -129,3 +135,9 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True  
 EMAIL_HOST_USER = 'taspiyasultana194112@gmail.com' 
 EMAIL_HOST_PASSWORD = 'eoeu qgkk leib foit'  
+
+
+from decouple import config
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
+STRIPE_RECURRING_PRICE_ID = config('STRIPE_RECURRING_PRICE_ID')

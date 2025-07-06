@@ -1,16 +1,23 @@
-from django.shortcuts import render
+from .emails import send_otp
+from django.conf import settings
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from .models import Class, Plan, ChatMessage
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from .serializers import RegisterSerializer, LoginSerializer, ClassSerializer, PlanSerializer, ChatMessageSerializer
+from .serializers import RegisterSerializer, LoginSerializer, ClassSerializer, PlanSerializer, ChatMessageSerializer, VerifyOTPSerializer
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+# from core.ai.Local_lama import ChatbotService    # Import your AI service here
+
+
+User = get_user_model()
 
 def get_tokens_for_user(user):
     if not user.is_active:
@@ -29,10 +36,34 @@ def register(request):
     if request.method == 'POST':
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
+            email = serializer.validated_data.get('email')
+            if User.objects.filter(email=email).exists():
+                return Response({"error": "This email is already registered!"}, status=status.HTTP_400_BAD_REQUEST)
+        
             user = serializer.save()
-            return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+            send_otp(serializer.validated_data['email'])
+            return Response({"message": "Signup Successful! Please verify your email."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
 
+
+@api_view(['POST'])
+def verifyOTP(request):
+    if request.method == 'POST':
+        serializer = VerifyOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data.get('email')
+            otp = serializer.validated_data.get('otp')
+        
+            user = get_object_or_404(User, email=email)
+        
+            if user.otp != otp:
+                return Response({'msg':"Wrong Otp"}, status=status.HTTP_400_BAD_REQUEST)
+     
+            user.is_verified = True
+            user.save()
+            return Response({"message": "Email verified successfully!"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+          
 
 # Login & return JWT
 @api_view(['POST'])
@@ -115,3 +146,62 @@ def chat_list_create(request):
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+# Create a payment 
+import stripe
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def CreatePaymentAPI(request):
+    if request.method == 'POST':
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                 {'price': settings.STRIPE_RECURRING_PRICE_ID, 'quantity': 1}
+            ],
+            mode='subscription',
+            success_url='http://localhost:8000/api/success',
+            cancel_url='http://localhost:8000/api/cancel',
+        )
+        return Response({'checkout_url': checkout_session.url})
+    
+
+def success(request):
+    return Response({'message': 'Payment successful!'}, status=status.HTTP_200_OK)
+
+def cancel(request):
+    return Response({'message': 'Payment cancelled!'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# -----------# AI Chatbot View------------
+# chatbot = ChatbotService()  # Initialize your AI service
+
+# @api_view(['POST'])
+# def chat_with_ai(request):
+#     serializer = ChatMessageSerializer(data=request.data)
+#     if serializer.is_valid():
+#         user_question = serializer.validated_data.get('question')
+#         if not user_question:
+#             return Response({'error': 'Question is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+#         chat_history = chatbot.load_chat_history()
+        
+#         # Use your AI service to get a response
+#         ai_response = chatbot.get_response(user_question, chat_history)
+        
+#         # Save the chat message
+#         chat_history.append({'role': 'user', 'content': user_question})
+#         chat_history.append({'role': 'assistant', 'content': ai_response['answer']})
+#         chatbot.save_chat_history(chat_history)
+    
+#         return Response({
+#             'question': user_question,
+#             'answer': ai_response['answer'],
+#             'sources': [doc.page_content for doc in ai_response['source_documents']]
+#         }, status=status.HTTP_200_OK)   
+                
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

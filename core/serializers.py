@@ -19,6 +19,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 
+class VerifyOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField()
+    
+
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
@@ -47,8 +52,5 @@ class PlanSerializer(serializers.ModelSerializer):
 
 
 
-class ChatMessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ChatMessage
-        fields = '__all__'
-        read_only_fields = ['user']
+class ChatMessageSerializer(serializers.Serializer):
+    question = serializers.CharField()

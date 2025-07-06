@@ -6,6 +6,8 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     email = models.EmailField(unique=True)
     bio = models.TextField(blank=True)
+    is_verified = models.BooleanField(default=False)
+    otp = models.CharField(max_length=6, null=True, blank=True)
 
     USERNAME_FIELD = 'email'    # Required for log in
     REQUIRED_FIELDS = ['username'] # Required for creating a user
