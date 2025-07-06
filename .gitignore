@@ -1,12 +1,6 @@
-# Env
+# Ignore environment variables
 .env
 
-# Python
-__pycache__/
-*.py[cod]
-*.sqlite3
-
-# Virtualenv
+# Ignore Python virtual environment
 env/
 venv/
-ENV/
