@@ -1,3 +1,4 @@
+from .serializers import *
 from .emails import send_otp
 from django.conf import settings
 from rest_framework import serializers
@@ -7,8 +8,8 @@ from rest_framework import status, permissions
 from .models import Class, Plan, ChatMessage
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from .serializers import RegisterSerializer, LoginSerializer, ClassSerializer, PlanSerializer, ChatMessageSerializer, VerifyOTPSerializer
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import AuthenticationFailed
@@ -18,6 +19,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 User = get_user_model()
+token_generator = PasswordResetTokenGenerator()
 
 def get_tokens_for_user(user):
     if not user.is_active:
@@ -94,6 +96,41 @@ def logout(request):
             return Response({'message': 'Logout successful'}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response({"error": "Invalid or expired refresh token"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+
+@api_view(['POST'])
+def ResetPassword(request):
+    serializer = ResetPasswordSerializer(data=request.data)
+    if serializer.is_valid():
+        email = serializer.validated_data.get('email')
+        user = get_object_or_404(User, email=email)
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        token = token_generator.make_token(user)
+        
+        reset_url = f"http://localhost:3000/api/reset-password/{uidb64}/{token}/"
+        
+        send_mail(
+            subject="Password Reset",
+            message=f"Click the link to reset your password: {reset_url}",
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[user.email]
+        )
+        return Response({"message": "Password reset link sent"}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@api_view(['POST'])
+def PasswordResetConfirm(request):
+    serializer = SetNewPasswordSerializer(data=request.data)
+    if serializer.is_valid():
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+    return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # ----------CLASS VIEWS ----------
 

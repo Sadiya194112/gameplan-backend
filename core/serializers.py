@@ -1,6 +1,13 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 from .models import User, Class, Plan, ChatMessage
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
+
+User = get_user_model()
+token_generator = PasswordResetTokenGenerator()
 
 class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
@@ -27,8 +34,30 @@ class VerifyOTPSerializer(serializers.Serializer):
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
-    
 
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class SetNewPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True)
+    uidb64 = serializers.CharField()
+    token = serializers.CharField()
+
+    def validate(self, data):
+        try:
+            uid = force_str(urlsafe_base64_decode(data['uidb64']))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            raise serializers.ValidationError('Invalid reset link')
+
+        if not token_generator.check_token(user, data['token']):
+            raise serializers.ValidationError('Invalid or expired token.')
+        
+        user.set_password(data['password'])
+        user.save()       
+        return {"message": "Password reset successful"} 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

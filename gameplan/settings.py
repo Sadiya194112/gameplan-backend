@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-sfu#8xfz0c-32s^qbeuh91_1-l(#kp&0$5f(46v9_k@j@hc(vb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', '49ae-115-127-156-9.ngrok-free.app', 'localhost']
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', '49ae-115-127-156-9.ngrok-free.app', '6186-103-152-219-78.ngrok-free.app', 'localhost']
 
 
 # Application definition
@@ -79,8 +79,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'gameplan_db',
-        'USER': 'postgres',
-        'PASSWORD': '280695',
+        'USER': 'sadiya',
+        'PASSWORD': 'sadiya',
         'HOST': 'localhost',
         'PORT': '5432',
     }

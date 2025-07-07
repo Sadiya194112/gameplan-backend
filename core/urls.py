@@ -5,7 +5,10 @@ urlpatterns = [
     # -------------Authentication URLs-------------
     path('register/', views.register, name='register'),
     path('verification-code/', views.verifyOTP, name='verify-otp'),
-    path("create-payment/", views.CreatePaymentAPI, name='create_payment'),
+    path('reset-password/', views.ResetPassword, name='forget-password'),
+    path('password-reset-confirm/', views.PasswordResetConfirm, name='password-reset-confirm'),
+    
+    path("create-payment/", views.CreatePaymentAPI, name='create-payment'),
     path("success/", views.success, name='success'),
     path("cancel/", views.cancel, name="cancel"),
     
