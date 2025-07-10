@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from .manager import CustomUserManager
 from django.contrib.auth.models import AbstractUser
@@ -37,6 +38,7 @@ class ChatMessage(models.Model):
     question = models.TextField()
     answer = models.TextField()
     topic = models.CharField(max_length=100, default='default')
+    chat_id = models.UUIDField(default=uuid.uuid4, editable=False, db_index=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

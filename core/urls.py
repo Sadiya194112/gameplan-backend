@@ -17,8 +17,9 @@ urlpatterns = [
     
     path('class/', views.class_list_create, name='class-list-create'),
     path('plan/', views.plan_list_create, name='plan-list-create'),
-    path('chats/', views.chat_list_create, name='chat-list-create'),
     
-    path('ai-chat/', views.chat_with_ai, name='chat-with-ai')
+    path('chats/', views.chat_list_create, name='chat-list-create'),
+    path('ai-chat/', views.chat_with_ai, name='chat-with-ai'),
+    path('chat/history/', views.chat_history_by_chat_id)
 ]
 

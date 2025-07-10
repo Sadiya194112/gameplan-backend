@@ -73,9 +73,10 @@ class ClassSerializer(serializers.Serializer):
         return Class.objects.create(**validated_data)
 
 
-class GETClassSerializer(serializers.Serializer):
-    title = serializers.CharField()
-    description = serializers.CharField()
+class GETClassSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Class
+        fields = ['id', 'user', 'title', 'description']
     
 
 class PlanSerializer(serializers.Serializer):
@@ -85,12 +86,13 @@ class PlanSerializer(serializers.Serializer):
 
 
 
-class ChatMessageSerializer(serializers.Serializer):
-    question = serializers.CharField()
-    topic = serializers.CharField(required=False, default='default')
+class ChatMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatMessage
+        fields = ['id', 'chat_id', 'question', 'topic']
 
 
 class GETChatMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatMessage
-        fields = ['id', 'user', 'question', 'answer', 'topic', 'timestamp']
+        fields = ['id', 'chat_id', 'user', 'question', 'answer', 'topic', 'timestamp']

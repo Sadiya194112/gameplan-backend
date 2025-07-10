@@ -1,3 +1,5 @@
+import uuid
+from uuid import UUID
 from .serializers import *
 from .emails import send_otp
 from django.conf import settings
@@ -174,6 +176,7 @@ def chat_with_ai(request):
     if serializer.is_valid():
         user_question = serializer.validated_data.get('question')
         topic = serializer.validated_data.get('topic', 'default')
+        chat_id = serializer.validated_data.get('chat_id') or uuid.uuid4()
         
         user_id = request.user.id
         
@@ -181,7 +184,7 @@ def chat_with_ai(request):
         if not user_question:
             return Response({'error': 'Question is required'}, status=status.HTTP_400_BAD_REQUEST)
         
-        chatbot = ChatbotService(topic=topic, user_id=user_id)  # Initialize chatbot with the topic
+        chatbot = ChatbotService(topic=topic, user_id=user_id, chat_id=chat_id)  # Initialize chatbot with the topic
         
         chat_history = chatbot.load_chat_history()
         
@@ -199,17 +202,18 @@ def chat_with_ai(request):
                 user = request.user,
                 question = user_question,
                 answer = ai_response['answer'],
-                topic = topic
+                topic = topic,
+                chat_id = chat_id
             )
         except Exception as e:
             return Response({'error': f'Failed to save chat message: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
         return Response({
             'question': user_question,
             'answer': ai_response['answer'],
+            'chat_id': str(chat_id),
             'sources': [doc.page_content for doc in ai_response['source_documents']]
-        }, status=status.HTTP_200_OK)   
-                
+        }, status=status.HTTP_200_OK)
+            
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -241,6 +245,24 @@ def chat_list_create(request):
 
 
 
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def chat_history_by_chat_id(request):
+    chat_id = request.query_params.get('chat_id')
+    if not chat_id:
+        return Response({'error': 'chat_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        uuid = UUID(chat_id, version=4)
+    except ValueError:
+        return Response({'error': 'Invalid chat_id format'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    chat_messages = ChatMessage.objects.filter(user=request.user, chat_id=chat_id).order_by('timestamp')
+    if not chat_messages.exists():
+        return Response({'message': 'No chat history found for this chat_id'}, status=status.HTTP_404_NOT_FOUND)
+    serializer = GETChatMessageSerializer(chat_messages, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 # ----------CLASS VIEWS ----------
 
 @api_view(['GET', 'POST'])
@@ -253,7 +275,7 @@ def class_list_create(request):
             user = get_object_or_404(User, id=user_id)
             if request.user != user:
                 return Response({"error": "You do not have permission to view this user's classes."}, status=status.HTTP_403_FORBIDDEN)
-            classes = Class.objects.filter(user=user).order_by('-timestamp')
+            classes = Class.objects.filter(user=user)
         else:
             classes = Class.objects.filter(user=request.user)
         serializer = GETClassSerializer(classes, many=True)

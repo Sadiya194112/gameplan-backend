@@ -10,9 +10,10 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 class ChatbotService:
-    def __init__(self, topic="default", user_id="guest"):
+    def __init__(self, topic="default", user_id="guest", chat_id=None):
         self.topic = topic
         self.user_id = user_id
+        self.chat_id = chat_id or "default"
         
         # Initialize Ollama chat model
         try:
@@ -40,7 +41,7 @@ class ChatbotService:
             collection_name=f"{self.topic}_knowledge",
             persist_directory=f"./chroma_db/{self.topic}"
         )
-        self.chat_history_file = f"chat_history_{self.topic}.json"
+        self.chat_history_file = f"chat_history_{self.user_id}_{self.chat_id}.json"
         self.prompt_template = """You are a helpful AI assistant. Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
 Context: {context}

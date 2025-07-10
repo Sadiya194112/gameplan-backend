@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "What is the Duckworth–Lewis method in cricket?"
+  },
+  {
+    "role": "assistant",
+    "content": "The Duckworth-Lewis method (also known as the Duckworth-Lewis-Stern method) is a system used in limited-overs cricket matches to determine the target score that one team needs to achieve in order to win, after an interval of time has been added to their innings due to weather conditions or other interruptions."
+  }
+]

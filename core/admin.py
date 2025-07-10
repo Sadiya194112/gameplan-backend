@@ -25,7 +25,7 @@ class ChatMessageAdmin(admin.ModelAdmin):
 
 @admin.register(Class)
 class ClassAdmin(admin.ModelAdmin):
-    list_display = ['id','user', 'title', 'description', 'date']
+    list_display = ['id','user', 'title', 'description']
 
 
 @admin.register(Plan)
