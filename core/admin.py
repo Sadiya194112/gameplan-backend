@@ -12,7 +12,7 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
-    list_display = ('user', 'question_short', 'topic', 'timestamp')
+    list_display = ('id', 'user', 'question_short', 'topic', 'timestamp')
     search_fields = ('user__username', 'question', 'answer', 'topic')
     list_filter = ('topic', 'timestamp')
     ordering = ('-timestamp',)
@@ -25,4 +25,9 @@ class ChatMessageAdmin(admin.ModelAdmin):
 
 @admin.register(Class)
 class ClassAdmin(admin.ModelAdmin):
-    list_display = ['user', 'title', 'description', 'date']
+    list_display = ['id','user', 'title', 'description', 'date']
+
+
+@admin.register(Class)
+class PlanAdmin(admin.ModelAdmin):
+    list_display = ['id','user', 'title', 'duration', 'goals']

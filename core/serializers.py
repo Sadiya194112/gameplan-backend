@@ -78,11 +78,10 @@ class GETClassSerializer(serializers.Serializer):
     description = serializers.CharField()
     
 
-class PlanSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Plan
-        fields = '__all__'
-        read_only_fields = ['user']
+class PlanSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    duration = serializers.CharField()
+    goals = serializers.CharField()
 
 
 

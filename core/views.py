@@ -132,42 +132,6 @@ def PasswordResetConfirm(request):
     return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# ----------CLASS VIEWS ----------
-
-@api_view(['GET', 'POST'])
-@authentication_classes([JWTAuthentication])
-@permission_classes([permissions.IsAuthenticated])
-def class_list_create(request):
-    if request.method == 'GET':
-        classes = Class.objects.filter(user=request.user)
-        serializer = GETClassSerializer(classes, many=True)
-        return Response(serializer.data)
-    elif request.method == 'POST':
-        serializer = ClassSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-
-# -----------PLAN VIEWS-----------
-
-@api_view(['GET', 'POST'])
-@authentication_classes([JWTAuthentication])
-@permission_classes([permissions.IsAuthenticated])
-def plan_list_create(request):
-    if request.method == 'GET':
-        plans = Plan.objects.filter(user=request.user)
-        serializer = PlanSerializer(plans, many=True)
-        return Response(serializer.data)
-    elif request.method == 'POST':
-        serializer = PlanSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)      
-
-
 
 
 # Create a payment 
@@ -274,4 +238,48 @@ def chat_list_create(request):
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+# ----------CLASS VIEWS ----------
+
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def class_list_create(request):
+    if request.method == 'GET':
+        user_id = request.query_params.get('user_id')
+        if user_id:
+            user = get_object_or_404(User, id=user_id)
+            if request.user != user:
+                return Response({"error": "You do not have permission to view this user's classes."}, status=status.HTTP_403_FORBIDDEN)
+            classes = Class.objects.filter(user=user).order_by('-timestamp')
+        else:
+            classes = Class.objects.filter(user=request.user)
+        serializer = GETClassSerializer(classes, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = ClassSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
+# -----------PLAN VIEWS-----------
+
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def plan_list_create(request):
+    if request.method == 'GET':
+        plans = Plan.objects.filter(user=request.user)
+        serializer = PlanSerializer(plans, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = PlanSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)      
+
