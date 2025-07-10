@@ -21,7 +21,7 @@ class User(AbstractUser):
 class Class(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    date = models.DateField()
+    date = models.DateField(null=True, blank=True)
     description = models.TextField()
 
 
@@ -34,6 +34,10 @@ class Plan(models.Model):
 
 class ChatMessage(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField()
+    question = models.TextField()
+    answer = models.TextField()
+    topic = models.CharField(max_length=100, default='default')
     timestamp = models.DateTimeField(auto_now_add=True)
-    sender = models.CharField(max_length=10, choices=(('user', 'User'), ('bot', 'Bot')))
+
+    def __str__(self):
+        return f"{self.user.username} - {self.topic} - {self.timestamp}"

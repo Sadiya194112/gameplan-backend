@@ -65,13 +65,18 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
 
-class ClassSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Class
-        fields = '__all__'
-        read_only_fields = ['user']
+class ClassSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    description = serializers.CharField()   
+    
+    def create(self, validated_data):
+        return Class.objects.create(**validated_data)
 
 
+class GETClassSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    description = serializers.CharField()
+    
 
 class PlanSerializer(serializers.ModelSerializer):
     class Meta:
@@ -83,3 +88,10 @@ class PlanSerializer(serializers.ModelSerializer):
 
 class ChatMessageSerializer(serializers.Serializer):
     question = serializers.CharField()
+    topic = serializers.CharField(required=False, default='default')
+
+
+class GETChatMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatMessage
+        fields = ['id', 'user', 'question', 'answer', 'topic', 'timestamp']

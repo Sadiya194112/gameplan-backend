@@ -15,7 +15,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-# from core.ai.Local_lama import ChatbotService    # Import your AI service here
+from core.ai.Local_lama import ChatbotService    # Import your AI service here
 
 
 User = get_user_model()
@@ -111,8 +111,8 @@ def ResetPassword(request):
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
         token = token_generator.make_token(user)
         
-        reset_url = f"http://localhost:3000/api/reset-password/{uidb64}/{token}/"
-        
+        reset_url = f"http://localhost:5173/reset-password-confirm?uidb64={uidb64}&token={token}"    
+            
         send_mail(
             subject="Password Reset",
             message=f"Click the link to reset your password: {reset_url}",
@@ -140,7 +140,7 @@ def PasswordResetConfirm(request):
 def class_list_create(request):
     if request.method == 'GET':
         classes = Class.objects.filter(user=request.user)
-        serializer = ClassSerializer(classes, many=True)
+        serializer = GETClassSerializer(classes, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
         serializer = ClassSerializer(data=request.data)
@@ -168,22 +168,7 @@ def plan_list_create(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)      
 
 
-# -----------CHAT MESSAGE VIEWS-----------
-@api_view(['GET', 'POST'])
-@authentication_classes([JWTAuthentication])
-@permission_classes([permissions.IsAuthenticated])
-def chat_list_create(request):
-    if request.method == 'GET':
-        messages = ChatMessage.objects.filter(user=request.user)
-        serializer = ChatMessageSerializer(messages, many=True)
-        return Response(serializer.data)
-    elif request.method == 'POST':
-        serializer = ChatMessageSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 # Create a payment 
 import stripe
@@ -217,28 +202,76 @@ def cancel(request):
 # -----------# AI Chatbot View------------
 # chatbot = ChatbotService()  # Initialize your AI service
 
-# @api_view(['POST'])
-# def chat_with_ai(request):
-#     serializer = ChatMessageSerializer(data=request.data)
-#     if serializer.is_valid():
-#         user_question = serializer.validated_data.get('question')
-#         if not user_question:
-#             return Response({'error': 'Question is required'}, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def chat_with_ai(request):
+    serializer = ChatMessageSerializer(data=request.data)
+    if serializer.is_valid():
+        user_question = serializer.validated_data.get('question')
+        topic = serializer.validated_data.get('topic', 'default')
         
-#         chat_history = chatbot.load_chat_history()
+        user_id = request.user.id
         
-#         # Use your AI service to get a response
-#         ai_response = chatbot.get_response(user_question, chat_history)
         
-#         # Save the chat message
-#         chat_history.append({'role': 'user', 'content': user_question})
-#         chat_history.append({'role': 'assistant', 'content': ai_response['answer']})
-#         chatbot.save_chat_history(chat_history)
-    
-#         return Response({
-#             'question': user_question,
-#             'answer': ai_response['answer'],
-#             'sources': [doc.page_content for doc in ai_response['source_documents']]
-#         }, status=status.HTTP_200_OK)   
+        if not user_question:
+            return Response({'error': 'Question is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        chatbot = ChatbotService(topic=topic, user_id=user_id)  # Initialize chatbot with the topic
+        
+        chat_history = chatbot.load_chat_history()
+        
+        # Use your AI service to get a response
+        ai_response = chatbot.get_response(user_question, chat_history)
+        
+        # Save the chat message
+        chat_history.append({'role': 'user', 'content': user_question})
+        chat_history.append({'role': 'assistant', 'content': ai_response['answer']})
+        chatbot.save_chat_history(chat_history)
+        
+        #Save the chat message to the database
+        try:
+            ChatMessage.objects.create(
+                user = request.user,
+                question = user_question,
+                answer = ai_response['answer'],
+                topic = topic
+            )
+        except Exception as e:
+            return Response({'error': f'Failed to save chat message: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response({
+            'question': user_question,
+            'answer': ai_response['answer'],
+            'sources': [doc.page_content for doc in ai_response['source_documents']]
+        }, status=status.HTTP_200_OK)   
                 
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+# -----------CHAT MESSAGE VIEWS-----------
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def chat_list_create(request):
+    if request.method == 'GET':
+        user_id = request.query_params.get('user_id')
+        if user_id:
+            user = get_object_or_404(User, id=user_id)
+            if request.user != user:
+                return Response({"error": "You do not have permission to view this user's chat messages."}, status=status.HTTP_403_FORBIDDEN)
+            messages = ChatMessage.objects.filter(user=user).order_by('-timestamp')
+        else:
+            messages = ChatMessage.objects.filter(user=request.user)
+        serializer = GETChatMessageSerializer(messages, many=True)
+        return Response(serializer.data)
+            
+    elif request.method == 'POST':
+        serializer = ChatMessageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    

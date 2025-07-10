@@ -10,12 +10,15 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 class ChatbotService:
-    def __init__(self):
+    def __init__(self, topic="default", user_id="guest"):
+        self.topic = topic
+        self.user_id = user_id
+        
         # Initialize Ollama chat model
         try:
             self.llm = ChatOllama(
                 model="llama3.2:3b",
-                base_url="http://localhost:11434",
+                base_url="http://127.0.0.1:11500",
                 temperature=0.7,  # Controls randomness (0.0 to 2.0, lower is more deterministic)
                 num_predict=2048,  # Maximum number of tokens to generate
                 top_p=0.9,  # Nucleus sampling parameter (0.0 to 1.0)
@@ -34,10 +37,10 @@ class ChatbotService:
         # Vector store using Chroma for sports knowledge
         self.vectorstore = Chroma(
             embedding_function=self.embeddings,
-            collection_name="sports_knowledge",
-            persist_directory="./chroma_db"
+            collection_name=f"{self.topic}_knowledge",
+            persist_directory=f"./chroma_db/{self.topic}"
         )
-
+        self.chat_history_file = f"chat_history_{self.topic}.json"
         self.prompt_template = """You are a helpful AI assistant. Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
 Context: {context}
@@ -46,6 +49,9 @@ Question: {question}
 Helpful Answer:"""
         
         self.QA_PROMPT = ChatPromptTemplate.from_template(self.prompt_template)
+        
+    def get_chat_filename(self):
+        return f"chat_history_{self.user_id}_{self.topic}.json"
 
     def get_response(self, question: str, chat_history: List[Dict[str, str]]) -> Dict[str, Any]:
         # Get context from vector store
@@ -65,7 +71,8 @@ Helpful Answer:"""
                 context=context,
                 question=question
             )
-            
+            print("=== Prompt sent to Ollama ===")
+            print(formatted_prompt[0].content)
             # Get the response from the model
             response = self.llm.invoke(formatted_prompt[0].content)
             
@@ -100,7 +107,7 @@ Helpful Answer:"""
             persist_directory="./chroma_db"
         )
 
-    def save_chat_history(self, chat_history: List[Dict[str, str]], filename: str = "chat_history.json") -> None:
+    def save_chat_history(self, chat_history: List[Dict[str, str]]) -> None:
         """Save chat history to a JSON file.
         
         Args:
@@ -108,12 +115,13 @@ Helpful Answer:"""
             filename: Name of the file to save the history to
         """
         try:
+            filename = self.get_chat_filename()
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(chat_history, f, ensure_ascii=False, indent=2)
         except Exception as e:
             print(f"Warning: Could not save chat history: {e}")
 
-    def load_chat_history(self, filename: str = "chat_history.json") -> List[Dict[str, str]]:
+    def load_chat_history(self) -> List[Dict[str, str]]:
         """Load chat history from a JSON file.
         
         Args:
@@ -122,10 +130,12 @@ Helpful Answer:"""
         Returns:
             List of message dictionaries
         """
-        if not os.path.exists(filename):
+        filename = self.get_chat_filename()
+        if not os.path.exists(self.chat_history_file):
             return []
             
         try:
+            
             with open(filename, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:

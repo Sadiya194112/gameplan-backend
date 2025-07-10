@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -13,7 +14,7 @@ SECRET_KEY = 'django-insecure-sfu#8xfz0c-32s^qbeuh91_1-l(#kp&0$5f(46v9_k@j@hc(vb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', '49ae-115-127-156-9.ngrok-free.app', '6186-103-152-219-78.ngrok-free.app', 'localhost']
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1','6e2bd0b596d2.ngrok-free.app', '49ae-115-127-156-9.ngrok-free.app', '6186-103-152-219-78.ngrok-free.app', 'localhost']
 
 
 # Application definition
@@ -45,8 +46,11 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    "http://localhost:5173",  # React Vite dev server
+    "http://127.0.1:5173",  # React Vite dev server
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True  
 
 ROOT_URLCONF = 'gameplan.urls'
 
@@ -79,8 +83,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'gameplan_db',
-        'USER': 'sadiya',
-        'PASSWORD': 'sadiya',
+        'USER': 'postgres',
+        'PASSWORD': '280695',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -141,3 +145,10 @@ from decouple import config
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
 STRIPE_RECURRING_PRICE_ID = config('STRIPE_RECURRING_PRICE_ID')
+
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
+}
