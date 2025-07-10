@@ -28,6 +28,6 @@ class ClassAdmin(admin.ModelAdmin):
     list_display = ['id','user', 'title', 'description', 'date']
 
 
-@admin.register(Class)
+@admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
     list_display = ['id','user', 'title', 'duration', 'goals']

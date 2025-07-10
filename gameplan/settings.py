@@ -45,12 +45,25 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # React Vite dev server
-    "http://127.0.1:5173",  # React Vite dev server
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:5173",  # React Vite dev server
+#     "http://127.0.1:5173",  # React Vite dev server
+#     "https://49ae-115-127-156-9.ngrok-free.app"
+# ]
+
+# CORS_ALLOW_ALL_ORIGINS = True 
+
+
+# settings.py
+
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_ALL_ORIGINS = True  # for development
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'ngrok-skip-browser-warning',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True  
 
 ROOT_URLCONF = 'gameplan.urls'
 
