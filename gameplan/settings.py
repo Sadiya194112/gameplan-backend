@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-sfu#8xfz0c-32s^qbeuh91_1-l(#kp&0$5f(46v9_k@j@hc(vb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1','6e2bd0b596d2.ngrok-free.app', '49ae-115-127-156-9.ngrok-free.app', '6186-103-152-219-78.ngrok-free.app', 'localhost']
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1','6dbc1e7b4e90.ngrok-free.app', '49ae-115-127-156-9.ngrok-free.app', '6186-103-152-219-78.ngrok-free.app', 'localhost']
 
 
 # Application definition
@@ -60,7 +60,11 @@ from corsheaders.defaults import default_headers
 
 CORS_ALLOW_ALL_ORIGINS = True  # for development
 
+
+
 CORS_ALLOW_HEADERS = list(default_headers) + [
+    'Content-Type',
+    'Authorization',
     'ngrok-skip-browser-warning',
 ]
 
@@ -92,23 +96,23 @@ AUTHENTICATION_BACKENDS = [
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'gameplan_db',
-        'USER': 'postgres',
-        'PASSWORD': '280695',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'gameplan_db',
+#         'USER': 'postgres',
+#         'PASSWORD': '280695',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
 
 # Password validation

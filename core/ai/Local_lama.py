@@ -19,7 +19,7 @@ class ChatbotService:
         try:
             self.llm = ChatOllama(
                 model="llama3.2:3b",
-                base_url="http://127.0.0.1:11500",
+                base_url="http://127.0.0.1:11434",
                 temperature=0.7,  # Controls randomness (0.0 to 2.0, lower is more deterministic)
                 num_predict=2048,  # Maximum number of tokens to generate
                 top_p=0.9,  # Nucleus sampling parameter (0.0 to 1.0)

@@ -81,7 +81,7 @@ def login(request):
             # breakpoint()
             if user is not None:
                 token = get_tokens_for_user(user)
-                return Response({'token': token,'message': 'Login Success'}, status=status.HTTP_200_OK)
+                return Response({'token': token, 'user_id': user.id,  'message': 'Login Success'}, status=status.HTTP_200_OK)
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
